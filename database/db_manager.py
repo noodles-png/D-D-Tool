@@ -4,6 +4,7 @@ import sqlite3
 class DnDDatabase:
     def __init__(self):
         self.connection = sqlite3.connect("dnd.db")
+        self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
         self.create_tables()
 
@@ -26,11 +27,11 @@ class DnDDatabase:
         self.connection.commit()
 
 
-    def add_character(self, char_name, char_class ,char_race, char_level=1):
+    def add_character(self, char_name, char_class ,char_race, char_level=1, char_hp=None, char_ac=None):
         """ Adds a character to the database """
         self.cursor.execute(
-            "INSERT INTO characters (char_name, char_class, char_race, char_level) VALUES (?, ?, ?, ?)",
-            (char_name, char_class, char_race, char_level)
+            "INSERT INTO characters (char_name, char_class, char_race, char_level, char_hp, char_ac) VALUES (?, ?, ?, ?, ?, ?)",
+            (char_name, char_class, char_race, char_level, char_hp, char_ac)
         )
         self.connection.commit()
         return self.cursor.lastrowid
