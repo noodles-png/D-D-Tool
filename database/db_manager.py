@@ -67,6 +67,9 @@ class DnDDatabase:
 
 if __name__ == "__main__":
     db = DnDDatabase()
-    db.add_character("Aragorn", "Ranger", "Human", 5)
-    print(db.get_all_characters())
+    db.add_character("Aragorn", "Ranger", "Human", 1, 10, 10)
+    db.add_character("Legolas", "Ranger", "Elf", 3)
+    db.add_character("Gimli", "Fighter", "Dwarf", 4, 35, 18)
+    for character in db.get_all_characters():
+        print(f"{character['char_name']} (Level {character['char_level']}) -  {character['char_class']}, {character['char_race']}")
     db.close_connection()
