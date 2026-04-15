@@ -50,6 +50,30 @@ class DnDDatabase:
             )
             """
         )
+        self.cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS items (
+                item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                api_index TEXT UNIQUE NOT NULL,
+                item_name TEXT NOT NULL,
+                item_cost TEXT,
+                item_weight INTEGER,
+                description TEXT
+            )
+            """
+        )
+        self.cursor.execute(
+            """ 
+            CREATE TABLE IF NOT EXISTS character_inventory (
+                char_id INTEGER NOT NULL,
+                item_id INTEGER NOT NULL,
+                item_quantity INTEGER DEFAULT 1,
+                PRIMARY KEY (char_id, item_id),
+                FOREIGN KEY (char_id) REFERENCES characters(char_id) ON DELETE CASCADE,
+                FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE
+                )
+            """
+        )
         self.connection.commit()
 
 
@@ -68,10 +92,12 @@ class DnDDatabase:
         self.cursor.execute("SELECT * FROM characters")
         return self.cursor.fetchall()
 
+
     def get_character(self, char_id):
         """ Returns a character by its id """
         self.cursor.execute("SELECT * FROM characters WHERE char_id = ?", (char_id,))
         return self.cursor.fetchone()
+
 
     def update_character(self, char_id, char_name, char_class, char_race, char_level, char_hp, char_ac):
         """ Updates a character by its id """
@@ -82,6 +108,7 @@ class DnDDatabase:
         )
         self.connection.commit()
 
+
     def delete_character(self, char_id):
         """ Removes a character by its id """
         self.cursor.execute("DELETE FROM characters WHERE char_id = ?", (char_id,))
@@ -89,6 +116,7 @@ class DnDDatabase:
 
 
     def close_connection(self):
+        """ Closes the database connection """
         self.connection.close()
 
 
@@ -104,6 +132,7 @@ class DnDDatabase:
 
 
     def learn_spell(self, char_id, spell_id):
+        """ Adds a spell to a character """
         self.cursor.execute(
             """ INSERT OR IGNORE INTO character_spells (char_id, spell_id) VALUES (?, ?)""",
             (char_id, spell_id)
@@ -123,15 +152,51 @@ class DnDDatabase:
         return self.cursor.fetchall()
 
 
+    def add_item(self, api_index, item_name, item_cost, item_weight, description):
+        """ Adds an item to the database """
+        self.cursor.execute(
+            """ INSERT OR REPLACE INTO items (api_index, item_name, item_cost, item_weight, description)
+            VALUES (?, ?, ?, ?, ?) """,
+            (api_index, item_name, item_cost, item_weight, description)
+        )
+        self.connection.commit()
+        return self.cursor.lastrowid
+
+
+    def obtain_item(self, char_id, item_id, item_quantity):
+        """ Adds an item to a character """
+        self.cursor.execute(
+            """ INSERT OR REPLACE INTO character_inventory (char_id, item_id, item_quantity) VALUES (?, ?, ?)""",
+            (char_id, item_id, item_quantity)
+        )
+        self.connection.commit()
+
+
+    def get_character_items(self, char_id):
+        """ Returns all items a character knows """
+        self.cursor.execute(
+            """
+                SELECT items.*, character_inventory.item_quantity FROM items
+                JOIN character_inventory ON items.item_id = character_inventory.item_id
+                WHERE character_inventory.char_id = ?
+            """,
+            (char_id,)
+        )
+        return self.cursor.fetchall()
+
 if __name__ == "__main__":
     db = DnDDatabase()
     db.add_character("Gandalf", "Wizard", "Maia", 20)
     db.add_character("Aragorn", "Ranger", "Human", 1, 10, 10)
     db.add_character("Legolas", "Ranger", "Elf", 3)
     db.add_character("Gimli", "Fighter", "Dwarf", 4, 35, 18)
+    item = db.cursor.execute("SELECT item_id FROM items WHERE api_index = ?", ("book",)).fetchone()
+    db.obtain_item(2, item["item_id"], 2)
+    for s in db.get_character_items(2):
+        print(f"{s['item_name']} x {s['item_quantity']}")
     spell = db.cursor.execute("SELECT spell_id FROM spells WHERE api_index = ?", ("fireball",)).fetchone()
     db.learn_spell(1, spell["spell_id"])
-    print("\nGandals Zauber:")
+    print("\nGandalfs Zauber:")
     for s in db.get_character_spells(1):
         print(f" - {s['spell_name']} (Level {s['spell_level']}, {s['spell_school']})")
     for character in db.get_all_characters():

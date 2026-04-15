@@ -1,7 +1,6 @@
 import requests
 
 
-
 def get_all_spells():
     response = requests.get(f"https://www.dnd5eapi.co/api/2014/spells")
     data = response.json()
@@ -13,10 +12,15 @@ def get_spell(spell_choice):
     return response.json()
 
 
+def get_all_items():
+    response = requests.get(f"https://www.dnd5eapi.co/api/2014/equipment")
+    data = response.json()
+    return [item["index"] for item in data["results"]]
 
 
-
-
+def get_item(item_choice):
+    response = requests.get(f"https://www.dnd5eapi.co/api/2014/equipment/{item_choice}")
+    return response.json()
 
 
 if __name__ == '__main__':

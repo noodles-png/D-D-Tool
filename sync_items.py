@@ -1,0 +1,24 @@
+from database.db_manager import DnDDatabase
+from api.dnd_api import get_item, get_all_items
+
+
+def sync_all_items():
+    db = DnDDatabase()
+    indices = get_all_items()
+    for i, api_index in enumerate(indices, start=1):
+        item = get_item(api_index)
+        item_name = item["name"]
+        # item_cost_quant =  # TODO item_cost in db auf zwei segments aufteilen -> besser für Filter/Sortierung
+        # item_cost_unit =
+        cost = item.get("cost")
+        item_cost = f"{cost["quantity"]} {cost["unit"]}"
+        item_weight = item.get("weight")
+        desc = item.get("desc", [])
+        description = "\n\n".join("desc") if desc else None
+        db.add_item(api_index, item_name, item_cost, item_weight, description)
+        print(f"[{i}|{len(indices)}] {item_name}")
+    db.close_connection()
+
+
+if __name__ == "__main__":
+    sync_all_items()
