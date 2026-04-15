@@ -1,12 +1,13 @@
 from database.db_manager import DnDDatabase
-from api.dnd_api import get_item, get_all_items
+from api.dnd_api import DnDApiClient
 
 
 def sync_all_items():
     db = DnDDatabase()
-    indices = get_all_items()
+    client = DnDApiClient()
+    indices = client.get_all_items()
     for i, api_index in enumerate(indices, start=1):
-        item = get_item(api_index)
+        item = client.get_item(api_index)
         item_name = item["name"]
         # item_cost_quant =  # TODO item_cost in db auf zwei segments aufteilen -> besser für Filter/Sortierung
         # item_cost_unit =

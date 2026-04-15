@@ -1,12 +1,13 @@
 from database.db_manager import DnDDatabase
-from api.dnd_api import get_all_spells, get_spell
+from api.dnd_api import DnDApiClient
 
 
 def sync_all_spells():
     db = DnDDatabase()
-    indices = get_all_spells()
+    client = DnDApiClient()
+    indices = client.get_all_spells()
     for i, api_index in enumerate(indices, start=1):
-        spell = get_spell(api_index)
+        spell = client.get_spell(api_index)
         spell_name = spell["name"]
         spell_level = spell["level"]
         spell_school = spell["school"]["name"]
