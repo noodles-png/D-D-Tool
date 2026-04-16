@@ -12,10 +12,10 @@ def sync_all_items():
         # item_cost_quant =  # TODO item_cost in db auf zwei segments aufteilen -> besser für Filter/Sortierung
         # item_cost_unit =
         cost = item.get("cost")
-        item_cost = f"{cost["quantity"]} {cost["unit"]}"
+        item_cost = f"{cost['quantity']} {cost['unit']}" if cost else None
         item_weight = item.get("weight")
         desc = item.get("desc", [])
-        description = "\n\n".join("desc") if desc else None
+        description = "\n\n".join(desc) if desc else None
         db.add_item(api_index, item_name, item_cost, item_weight, description)
         print(f"[{i}|{len(indices)}] {item_name}")
     db.close_connection()

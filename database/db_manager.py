@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import json
 
 
 class DnDDatabase:
@@ -11,7 +12,6 @@ class DnDDatabase:
         self.cursor.execute("PRAGMA foreign_keys = ON")
         self.create_tables()
 
-
     def create_tables(self):
         """ Creates all tables if they don't exist """
         self.cursor.execute(
@@ -22,8 +22,21 @@ class DnDDatabase:
                 char_class TEXT,
                 char_race TEXT,
                 char_level INTEGER DEFAULT 1,
-                char_hp INTEGER,
-                char_ac INTEGER
+                max_hp INTEGER,
+                
+                -- Ability Scores
+                strength INTEGER DEFAULT 10,
+                dexterity INTEGER DEFAULT 10,
+                constitution INTEGER DEFAULT 10,
+                intelligence INTEGER DEFAULT 10,
+                wisdom INTEGER DEFAULT 10,
+                charisma INTEGER DEFAULT 10,
+                
+                -- Fight
+                current_hp INTEGER,
+                armor_class INTEGER,
+                speed INTEGER DEFAULT 30,
+                proficiency_bonus INTEGER DEFAULT 2
             )
             """
         )
@@ -74,51 +87,59 @@ class DnDDatabase:
                 )
             """
         )
+        self.cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS monsters (
+                monster_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                api_index TEXT UNIQUE NOT NULL,
+                monster_name TEXT NOT NULL,
+                max_hp INTEGER,
+                monster_size TEXT,
+                monster_type TEXT,
+                armor_class INTEGER,
+                challenge_rating REAL,
+                raw_json TEXT
+            )
+            """
+        )
         self.connection.commit()
 
-
-    def add_character(self, char_name, char_class ,char_race, char_level=1, char_hp=None, char_ac=None):
+    def add_character(self, char_name, char_class, char_race, char_level=1, max_hp=None, armor_class=None):
         """ Adds a character to the database """
         self.cursor.execute(
-            "INSERT INTO characters (char_name, char_class, char_race, char_level, char_hp, char_ac) VALUES (?, ?, ?, ?, ?, ?)",
-            (char_name, char_class, char_race, char_level, char_hp, char_ac)
+            "INSERT INTO characters (char_name, char_class, char_race, char_level, max_hp, armor_class) VALUES (?, ?, ?, ?, ?, ?)",
+            (char_name, char_class, char_race, char_level, max_hp, armor_class)
         )
         self.connection.commit()
         return self.cursor.lastrowid
-
 
     def get_all_characters(self):
         """ Returns all characters """
         self.cursor.execute("SELECT * FROM characters")
         return self.cursor.fetchall()
 
-
     def get_character(self, char_id):
         """ Returns a character by its id """
         self.cursor.execute("SELECT * FROM characters WHERE char_id = ?", (char_id,))
         return self.cursor.fetchone()
 
-
-    def update_character(self, char_id, char_name, char_class, char_race, char_level, char_hp, char_ac):
+    def update_character(self, char_id, char_name, char_class, char_race, char_level, max_hp, armor_class):
         """ Updates a character by its id """
         self.cursor.execute(
             """ UPDATE characters SET char_name = ?, char_class = ?, char_race = ?,
-            char_level = ?, char_hp = ?, char_ac = ? WHERE char_id = ?""",
-            (char_name, char_class, char_race, char_level, char_hp, char_ac, char_id)
+            char_level = ?, max_hp = ?, armor_class = ? WHERE char_id = ?""",
+            (char_name, char_class, char_race, char_level, max_hp, armor_class, char_id)
         )
         self.connection.commit()
-
 
     def delete_character(self, char_id):
         """ Removes a character by its id """
         self.cursor.execute("DELETE FROM characters WHERE char_id = ?", (char_id,))
         self.connection.commit()
 
-
     def close_connection(self):
         """ Closes the database connection """
         self.connection.close()
-
 
     def add_spell(self, api_index, spell_name, spell_level, spell_school, description):
         """ Adds a spell to the database """
@@ -130,7 +151,6 @@ class DnDDatabase:
         self.connection.commit()
         return self.cursor.lastrowid
 
-
     def learn_spell(self, char_id, spell_id):
         """ Adds a spell to a character """
         self.cursor.execute(
@@ -138,7 +158,6 @@ class DnDDatabase:
             (char_id, spell_id)
         )
         self.connection.commit()
-
 
     def get_character_spells(self, char_id):
         """ Returns all spells a character knows """
@@ -151,7 +170,6 @@ class DnDDatabase:
         )
         return self.cursor.fetchall()
 
-
     def add_item(self, api_index, item_name, item_cost, item_weight, description):
         """ Adds an item to the database """
         self.cursor.execute(
@@ -162,7 +180,6 @@ class DnDDatabase:
         self.connection.commit()
         return self.cursor.lastrowid
 
-
     def obtain_item(self, char_id, item_id, item_quantity):
         """ Adds an item to a character """
         self.cursor.execute(
@@ -170,7 +187,6 @@ class DnDDatabase:
             (char_id, item_id, item_quantity)
         )
         self.connection.commit()
-
 
     def get_character_items(self, char_id):
         """ Returns all items a character knows """
@@ -183,6 +199,22 @@ class DnDDatabase:
             (char_id,)
         )
         return self.cursor.fetchall()
+
+
+    def add_monster(self, api_index, monster_name, max_hp, monster_size, monster_type, armor_class, challenge_rating, raw_json):
+        """ Adds a monster to the database """
+        self.cursor.execute(
+            """
+            INSERT OR REPLACE INTO monsters (api_index, monster_name, max_hp, monster_size, monster_type, armor_class, challenge_rating, raw_json)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (api_index, monster_name, max_hp, monster_size, monster_type, armor_class, challenge_rating, raw_json)
+        )
+        self.connection.commit()
+
+
+
+
 
 if __name__ == "__main__":
     db = DnDDatabase()
@@ -200,5 +232,6 @@ if __name__ == "__main__":
     for s in db.get_character_spells(1):
         print(f" - {s['spell_name']} (Level {s['spell_level']}, {s['spell_school']})")
     for character in db.get_all_characters():
-        print(f"{character['char_name']} (Level {character['char_level']}) -  {character['char_class']}, {character['char_race']}")
+        print(
+            f"{character['char_name']} (Level {character['char_level']}) -  {character['char_class']}, {character['char_race']}")
     db.close_connection()
