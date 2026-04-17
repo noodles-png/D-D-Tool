@@ -262,6 +262,9 @@ class DnDDatabase:
 
 
 
+
+
+
 if __name__ == "__main__":
     db = DnDDatabase()
     db.add_character("Gandalf", "Wizard", "Maia", 20)

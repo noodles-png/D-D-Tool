@@ -63,5 +63,11 @@ class DnDApiClient:
         return response.json()
 
 
+    def get_spells_by_class(self, class_name):
+        response = self.session.get(f"{self.BASE_URL}/classes/{class_name}/spells")
+        data = response.json()
+        return [spell["index"] for spell in data["results"]]
+
+
 if __name__ == '__main__':
     pass
