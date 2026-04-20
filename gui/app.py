@@ -1,4 +1,3 @@
-from logging import setLogRecordFactory
 from dice.roller import roll_dice
 import customtkinter as ctk
 from customtkinter import CTkImage
@@ -35,39 +34,131 @@ class App(ctk.CTk):
 class DiceTab:
     def __init__(self, parent):
         """ Defines the structure of the dice roller tab """
-       # ctk.CTkLabel(parent, text="Dice Roller").grid(row=0, column=0)
-       # self.entry = ctk.CTkEntry(parent)
-        #self.entry.grid(row=0, column=1)
+        self.selected_die = 20
+        self.count = 1
+        self.modifier = 0
 
-        # Dice Buttons - Icon Images
-        d2_icon = ctk.CTkImage(light_image=Image.open(get_asset("d2.png")), size=(200,200))
-        d4_icon = ctk.CTkImage(light_image=Image.open(get_asset("d4.png")), size=(200,200))
-        d6_icon = ctk.CTkImage(light_image=Image.open(get_asset("d6.png")), size=(200,200))
-        d8_icon = ctk.CTkImage(light_image=Image.open(get_asset("d8.png")), size=(200,200))
-        d10_icon = ctk.CTkImage(light_image=Image.open(get_asset("d10.png")), size=(200,200))
-        d12_icon = ctk.CTkImage(light_image=Image.open(get_asset("d12.png")), size=(200,200))
-        d20_icon = ctk.CTkImage(light_image=Image.open(get_asset("d20.png")), size=(200,200))
-        d100_icon = ctk.CTkImage(light_image=Image.open(get_asset("d100.png")), size=(200,200))
+        # Tab division in left and right
+        self.left_frame = ctk.CTkFrame(parent)
+        self.left_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        self.right_frame = ctk.CTkFrame(parent)
+        self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
-        # Dice Buttons - Settings
-        d2_button = ctk.CTkButton(parent, text="", image=d2_icon, width=200, height=200, fg_color="transparent")
-        d2_button.grid(row=1, column=0)
-        d4_button = ctk.CTkButton(parent, text="", image=d4_icon, width=200, height=200, fg_color="transparent")
-        d4_button.grid(row=1, column=1)
-        d6_button = ctk.CTkButton(parent, text="", image=d6_icon, width=200, height=200, fg_color="transparent")
-        d6_button.grid(row=1, column=2)
-        d8_button = ctk.CTkButton(parent, text="", image=d8_icon, width=200, height=200, fg_color="transparent")
-        d8_button.grid(row=1, column=3)
-        d10_button = ctk.CTkButton(parent, text="", image=d10_icon, width=200, height=200, fg_color="transparent")
-        d10_button.grid(row=2, column=0)
-        d12_button = ctk.CTkButton(parent, text="", image=d12_icon, width=200, height=200, fg_color="transparent")
-        d12_button.grid(row=2, column=1)
-        d20_button = ctk.CTkButton(parent, text="", image=d20_icon, width=200, height=200, fg_color="transparent")
-        d20_button.grid(row=2, column=2)
-        d100_button = ctk.CTkButton(parent, text="", image=d100_icon, width=200, height=200, fg_color="transparent")
-        d100_button.grid(row=2, column=3)
+        # Display of dice buttons
+        dice_types = [2, 4, 6, 8, 10, 12, 20, 100]
+        self.dice_buttons = {}
+        for i, die in enumerate(dice_types):
+            icon = ctk.CTkImage(light_image=Image.open(get_asset(f"d{die}.png")), size=(60,60))
+            btn = ctk.CTkButton(
+                self.left_frame, text="", image=icon,
+                width=70, height=70, fg_color="transparent",
+                command=lambda d=die: self.select_die(d)
+            )
+            btn.grid(row=i // 4, column=i % 4, padx=5, pady=5)
+            self.dice_buttons[die] = btn
 
 
+        # Amount of dice setting
+        ctk.CTkLabel(self.left_frame, text="Amount").grid(row=3, column=0, pady=10)
+        self.count_entry = ctk.CTkEntry(self.left_frame, width=50, justify="center")
+        self.count_entry.insert(0, "1")
+        self.count_entry.grid(row=3, column=2)
+        ctk.CTkButton(self.left_frame, text="-", width=40, command=self.decrease_amount).grid(row=3, column=1, sticky="ew")
+        ctk.CTkButton(self.left_frame, text="+", width=40, command=self.increase_amount).grid(row=3, column=3, sticky="ew")
+
+        # Modifier setting
+        ctk.CTkLabel(self.left_frame, text="Modifier").grid(row=4, column=0, pady=10)
+        ctk.CTkButton(self.left_frame, text="-", width=40, command=self.decrease_mod).grid(row=4, column=1, sticky="ew")
+        self.mod_entry = ctk.CTkEntry(self.left_frame, width=50, justify="center")
+        self.mod_entry.insert(0, "0")
+        self.mod_entry.grid(row=4, column=2)
+        ctk.CTkButton(self.left_frame, text="+", width=40, command=self.increase_mod).grid(row=4, column=3, sticky="ew")
+
+        # Result history on the right side of the tab
+        self.history_box = ctk.CTkTextbox(self.right_frame, width=300, font=("Arial", 16))
+        self.history_box.pack(fill="both", expand=True, padx=10, pady=10)
+        self.history_box.configure(state="disabled")    # Read only Toggle
+
+        # Roll the dice button
+        roll_button = ctk.CTkButton(
+            self.left_frame,
+            text="🎲 Roll",
+            command=self.roll_click
+        )
+        roll_button.grid(row=5, column=1, columnspan=4, rowspan=3,  padx=10, pady=20, sticky="nsew")
+
+        self.select_die(20) # Default option
+
+    def decrease_amount(self):
+        try:
+            current = int(self.count_entry.get())
+        except ValueError:
+            current = 1
+        if current > 1:
+            current -= 1
+        self.count_entry.delete(0, "end")
+        self.count_entry.insert(0, str(current))
+
+    def increase_amount(self):
+        try:
+            current = int(self.count_entry.get())
+        except ValueError:
+            current = 1
+        current += 1
+        self.count_entry.delete(0, "end")
+        self.count_entry.insert(0, str(current))
+
+    def decrease_mod(self):
+        try:
+            mod_current = int(self.mod_entry.get())
+        except ValueError:
+            mod_current = 0
+        mod_current -= 1
+        self.mod_entry.delete(0, "end")
+        self.mod_entry.insert(0, str(mod_current))
+
+    def increase_mod(self):
+        try:
+            mod_current = int(self.mod_entry.get())
+        except ValueError:
+            mod_current = 0
+        mod_current += 1
+        self.mod_entry.delete(0, "end")
+        self.mod_entry.insert(0, str(mod_current))
+
+    def select_die(self, die):
+        self.selected_die = die
+        for d, btn in self.dice_buttons.items():
+            if d == die:
+                btn.configure(fg_color="#1f6aa5") # 1f6aa5 (Blue)
+            else:
+                btn.configure(fg_color="transparent")
+
+    def add_to_history(self, text):
+        self.history_box.configure(state="normal")
+        self.history_box.tag_remove("latest", "1.0", "end")
+        self.history_box.insert("0.0", text + "\n\n") #0.0 for Top of history, end for bottom
+        lines = text.count("\n") + 1
+        self.history_box.tag_add("latest", "1.0", f"{lines +1}.0")
+        self.history_box.tag_config("latest", foreground="#1f6aa5")
+
+        self.history_box.configure(state="disabled")
+
+    def roll_click(self):
+        try:
+            dice_amount = int(self.count_entry.get())
+            roll_modifier = int(self.mod_entry.get())
+        except ValueError:
+            self.add_to_history("Invalid input!")
+            return
+        dice_type = self.selected_die
+        notation = f"{dice_amount}d{dice_type}"
+        if roll_modifier > 0:
+            notation += f"+{roll_modifier}"
+        elif roll_modifier < 0:
+            notation += str(roll_modifier)
+        result = roll_dice(notation)
+        self.add_to_history(f"{notation}\nRolls: {result['rolls']}\nTotal: {result['total']}")
 
 
 if __name__ == "__main__":
