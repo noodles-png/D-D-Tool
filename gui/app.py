@@ -3,6 +3,7 @@ import customtkinter as ctk
 from customtkinter import CTkImage
 from PIL import Image
 from utils.helpers import get_asset
+from gui.character_tab import CharacterTab
 
 
 class App(ctk.CTk):
@@ -29,6 +30,7 @@ class App(ctk.CTk):
         self.tabs.add("Monsters")
         self.tabs.add("Dice Roller")
 
+        CharacterTab(self.tabs.tab("Characters"))
         DiceTab(self.tabs.tab("Dice Roller"))
 
 class DiceTab:
@@ -57,7 +59,6 @@ class DiceTab:
             btn.grid(row=i // 4, column=i % 4, padx=5, pady=5)
             self.dice_buttons[die] = btn
 
-
         # Amount of dice setting
         ctk.CTkLabel(self.left_frame, text="Amount").grid(row=3, column=0, pady=10)
         self.count_entry = ctk.CTkEntry(self.left_frame, width=50, justify="center")
@@ -80,12 +81,23 @@ class DiceTab:
         self.history_box.configure(state="disabled")    # Read only Toggle
 
         # Roll the dice button
+        self.left_frame.grid_rowconfigure(5, weight=1)
+        self.left_frame.grid_rowconfigure(6, weight=1)
         roll_button = ctk.CTkButton(
             self.left_frame,
             text="🎲 Roll",
+            font=("Arial", 20),
             command=self.roll_click
         )
-        roll_button.grid(row=5, column=1, columnspan=4, rowspan=3,  padx=10, pady=20, sticky="nsew")
+        roll_button.grid(row=5, column=1, columnspan=4, rowspan=2, padx=10, pady=20, sticky="nsew")
+
+        # Clear Text Box
+        clear_button = ctk.CTkButton(
+            self.left_frame,
+            text="Clear",
+            command=self.clear_click
+        )
+        clear_button.grid(row=7, column=1, columnspan=4, padx=10, pady=20, sticky="nsew")
 
         self.select_die(20) # Default option
 
@@ -160,6 +172,10 @@ class DiceTab:
         result = roll_dice(notation)
         self.add_to_history(f"{notation}\nRolls: {result['rolls']}\nTotal: {result['total']}")
 
+    def clear_click(self):
+        self.history_box.configure(state="normal")
+        self.history_box.delete("1.0", "end")
+        self.history_box.configure(state="disabled")
 
 if __name__ == "__main__":
     app = App()

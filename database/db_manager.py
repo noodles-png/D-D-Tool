@@ -259,6 +259,14 @@ class DnDDatabase:
         )
         self.connection.commit()
 
+    def get_all_classes(self):
+        self.cursor.execute("SELECT * FROM classes")
+        return self.cursor.fetchall()
+
+    def get_all_races(self):
+        self.cursor.execute("SELECT * FROM races")
+        return self.cursor.fetchall()
+
 
 if __name__ == "__main__":
     db = DnDDatabase()
