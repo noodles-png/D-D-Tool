@@ -4,8 +4,9 @@ especially for Dungeon Master but also for normal player. It helps keeping track
 characters without relying on too many different apps.
 
 
-## Prerequisite
+## Prerequisites
 
+Python 3.9 or newer
 
 ## Installation
 
@@ -18,18 +19,20 @@ characters without relying on too many different apps.
 - Management System for characters
 - Spell database
 - Database for created characters
+- GUI
 
 ## Upcoming Features
-- GUI
-- extended Dice parser
-- data visualization
+- Extended Dice parser
+- Data visualization
 - PDF-export
 - Initiative Tracker
 - KI-NPC-Generator 
 - Mobile App version
+- Docker Containerization
 - 
 
 ## Tech stack
 
 
 ## License
+MIT License - This is supposed to be a personal learning project 
