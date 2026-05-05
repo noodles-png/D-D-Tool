@@ -1,4 +1,5 @@
 import os
+import customtkinter as ctk
 
 def get_asset(filename):
     return os.path.join(os.path.dirname(__file__), "..", "assets", filename)
@@ -25,4 +26,15 @@ def get_spell_dc(prof_bonus, stat_modifier):
      """
     spell_dc = 8 + prof_bonus + stat_modifier
     return spell_dc
+
+def CollapsibleSection():
+    """ Open/Closes Widget via Button CLick """
+    pass
+
+
+class Overview_Frame(ctk.CTkScrollableFrame):
+    def __init__(self, master, **kwargs):   # **kwargs for not yet defined var
+        super().__init__(master, **kwargs)
+
+
 
