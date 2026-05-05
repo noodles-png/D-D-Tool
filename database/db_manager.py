@@ -165,6 +165,10 @@ class DnDDatabase:
         """ Closes the database connection """
         self.connection.close()
 
+    def get_spells_by_level(self, level):
+        self.cursor.execute("SELECT * FROM spells WHERE spell_level = ?", (level,))
+        return self.cursor.fetchall()
+
     def add_spell(self, api_index, spell_name, spell_level, spell_school, description):
         """ Adds a spell to the database """
         self.cursor.execute(
