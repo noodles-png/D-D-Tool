@@ -128,11 +128,43 @@ class DnDDatabase:
         self.connection.commit()
 
 
-    def add_character(self, char_name, char_class, char_race, char_level=1, max_hp=None, armor_class=None):
+    def add_character(self,
+                      char_name,
+                      char_class,
+                      char_race,
+                      char_level=1,
+                      strength=10,
+                      dexterity=10,
+                      constitution=10,
+                      intelligence=10,
+                      wisdom=10,
+                      charisma=10,
+                      max_hp=None,
+                      armor_class=None):
         """ Adds a character to the database """
         self.cursor.execute(
-            "INSERT INTO characters (char_name, char_class, char_race, char_level, max_hp, armor_class) VALUES (?, ?, ?, ?, ?, ?)",
-            (char_name, char_class, char_race, char_level, max_hp, armor_class)
+            "INSERT INTO characters (char_name, "
+            "char_class,"
+            "char_race,"
+            "char_level,"
+            "strength,"
+            "dexterity,"
+            "constitution,"
+            "intelligence,"
+            "wisdom,"
+            "charisma,"
+            "max_hp,"
+            "armor_class) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (char_name,
+             char_class,
+             char_race,
+             char_level,
+             strength,
+             dexterity,
+             constitution,
+             intelligence,
+             wisdom,
+             charisma, max_hp, armor_class)
         )
         self.connection.commit()
         return self.cursor.lastrowid
@@ -147,12 +179,12 @@ class DnDDatabase:
         self.cursor.execute("SELECT * FROM characters WHERE char_id = ?", (char_id,))
         return self.cursor.fetchone()
 
-    def update_character(self, char_id, char_name, char_class, char_race, char_level, max_hp, armor_class):
+    def update_character(self, char_id, char_name, char_class, char_race, char_level, strength, dexterity, constitution, intelligence, wisdom, charisma, max_hp, armor_class):
         """ Updates a character by its id """
         self.cursor.execute(
             """ UPDATE characters SET char_name = ?, char_class = ?, char_race = ?,
-            char_level = ?, max_hp = ?, armor_class = ? WHERE char_id = ?""",
-            (char_name, char_class, char_race, char_level, max_hp, armor_class, char_id)
+            char_level = ?, strength = ?, dexterity = ?, constitution = ?, intelligence = ?, wisdom = ?, charisma = ?, max_hp = ?, armor_class = ? WHERE char_id = ?""",
+            (char_name, char_class, char_race, char_level, strength, dexterity, constitution, intelligence, wisdom, charisma, max_hp, armor_class, char_id)
         )
         self.connection.commit()
 
@@ -277,20 +309,4 @@ class DnDDatabase:
 
 if __name__ == "__main__":
     db = DnDDatabase()
-    db.add_character("Gandalf", "Wizard", "Maia", 20)
-    db.add_character("Aragorn", "Ranger", "Human", 1, 10, 10)
-    db.add_character("Legolas", "Ranger", "Elf", 3)
-    db.add_character("Gimli", "Fighter", "Dwarf", 4, 35, 18)
-    item = db.cursor.execute("SELECT item_id FROM items WHERE api_index = ?", ("book",)).fetchone()
-    db.obtain_item(2, item["item_id"], 2)
-    for s in db.get_character_items(2):
-        print(f"{s['item_name']} x {s['item_quantity']}")
-    spell = db.cursor.execute("SELECT spell_id FROM spells WHERE api_index = ?", ("fireball",)).fetchone()
-    db.learn_spell(1, spell["spell_id"])
-    print("\nGandalfs Zauber:")
-    for s in db.get_character_spells(1):
-        print(f" - {s['spell_name']} (Level {s['spell_level']}, {s['spell_school']})")
-    for character in db.get_all_characters():
-        print(
-            f"{character['char_name']} (Level {character['char_level']}) -  {character['char_class']}, {character['char_race']}")
     db.close_connection()

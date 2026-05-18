@@ -14,9 +14,7 @@ def get_modifier(value):
 
 def get_prof_bonus(level):
     """ Returns the proficiency bonus based on character level """
-    level = int(level)
-    prof_bonus = (level // 4) + 1
-    return prof_bonus
+    return (int(level) - 1) // 4 + 2
 
 
 def get_spell_dc(prof_bonus, stat_modifier):
@@ -51,6 +49,7 @@ class CollapsibleSection:
         else:
             self.content.pack_forget()
             self.header_btn.configure(text=f"▶ {self.title}")
+
 
 
 

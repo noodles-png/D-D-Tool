@@ -9,11 +9,15 @@ characters without relying on too many different apps.
 Python 3.9 or newer
 Internet access for initial Database creation
 
-## Installation
+## Installation & Usage
 
-
-## Usage
-
+```
+pip install -r requirements.txt
+python sync_spells.py
+python sync_items.py
+python sync_monsters.py
+python gui/app.py
+```
 
 ## Features
 - Dice Roller 
