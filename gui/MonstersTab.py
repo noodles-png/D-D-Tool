@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import json
 from database.db_manager import DnDDatabase
 from utils.helpers import CollapsibleSection
 
@@ -40,20 +41,18 @@ class MonstersTab:
                        "CR 24",
                        "CR 30",
                        ]
+
+        cr_values = [0, 0.125, 0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                     11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30]
+
         self.monster_sections = {}
 
-        for i, title in enumerate(title_names):
+        for cr, title in zip(cr_values, title_names):
             section = CollapsibleSection(self.left_frame, title)
-            self.monster_sections[i] = section
+            self.monster_sections[cr] = section
 
-        # TODO: Search bar above the spell sections
-        """
-        ctk.CTkLabel(self.left_frame, text="Spell Overview").grid(row=0, column=0, padx=10, pady=10)
-        ctk.CTkEntry(self.left_frame, text="Search Name").grid(row=1, column=0, padx=10, pady=10)
-        """
-
-        for challenge_rating, section in self.monster_sections.items():
-            monsters = self.db.get_monster_by_cr(challenge_rating)
+        for cr, section in self.monster_sections.items():
+            monsters = self.db.get_monster_by_cr(cr)
             for monster in monsters:
                 btn = ctk.CTkButton(
                     section.content,
@@ -62,19 +61,20 @@ class MonstersTab:
                 )
                 btn.pack(fill="x", pady=1)
 
+
     def show_monster_details(self, monster):
+        full = json.loads(monster["raw_json"])
+
+        text = f"{monster['monster_name']}\n"
+        text += f"{monster['monster_size']} {monster['monster_type']}\n\n"
+        text += f"AC: {monster['armor_class']}  HP: {monster['max_hp']}\n"
+        text += f"CR: {monster['challenge_rating']}\n\n"
+
+        for action in full.get("actions", []):
+            text += f"• {action['name']}: {action.get('desc', '')}\n\n"
+
         self.detail_box.configure(state="normal")
         self.detail_box.delete("1.0", "end")
-        self.detail_box.insert("1.0",
-                               f"{monster['monster_name']}\nChallenge Rating {monster['challenge_rating']} {monster['monster_size']}"
-                               f"\n{monster['max_hp']} {monster['monster_type']} {monster['armor_class']}")
+        self.detail_box.insert("1.0", text)
         self.detail_box.configure(state="disabled")
-
-
-        max_hp
-
-
-        monster_type
-
-        armor_class
 
