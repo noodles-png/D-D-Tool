@@ -65,6 +65,13 @@ def export_character_pdf(template_path, output_path, char_data):
     writer = PdfWriter()
     writer.append(reader)
 
+    # Opens save window for the user
+    path = filedialog.asksaveasfilename(
+        defaultextension=".pdf",
+        filetypes=[("PDF", "*.pdf")],
+        initialfile=f"{char['char_name']}_character_sheet.pdf"
+    )
+
     fields = {
         "CharacterName": char_data["char_name"],
         "ClassLevel": f"{char_data['char_class']} {char_data['char_level']}",

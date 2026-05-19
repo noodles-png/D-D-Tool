@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from database.db_manager import DnDDatabase
 from utils.helpers import get_modifier, get_prof_bonus, export_character_pdf, get_asset
+from tkinter import filedialog
 
 
 class CharacterTab:
@@ -288,17 +289,14 @@ class CharacterTab:
             return
         char = self.db.get_character(self.current_char_id)
         print(f"Exporting: {char['char_name']}")
-        try:
-            export_character_pdf(
-                get_asset("5E_CharacterSheet_Fillable.pdf"),
-                f"{char['char_name']}_character_sheet.pdf",
-                char
-            )
-            print("Export done!")
-        except Exception as e:
-            print(f"Error: {e}")
 
+        # Opens save window for the user
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF", "*.pdf")],
+            initialfile=f"{char['char_name']}_character_sheet.pdf")
 
-
+        if path:
+            export_character_pdf(get_asset("5E_CharacterSheet_Fillable.pdf"), path, char)
 
 
