@@ -47,7 +47,7 @@ class MonstersTab:
 
         self.monster_sections = {}
 
-        for cr, title in zip(cr_values, title_names):
+        for cr, title in zip(cr_values, title_names): # zip combines lists to pairs; index 0 = "CR 0" etc.
             section = CollapsibleSection(self.left_frame, title)
             self.monster_sections[cr] = section
 

@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from database.db_manager import DnDDatabase
-from utils.helpers import get_modifier, get_prof_bonus
+from utils.helpers import get_modifier, get_prof_bonus, export_character_pdf, get_asset
+
 
 class CharacterTab:
     STATS = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
@@ -122,6 +123,11 @@ class CharacterTab:
             hover_color='#aa2222',
             command=self.delete_character
         ).pack(fill="x", pady=(0,5))
+
+        ctk.CTkButton(self.left_frame,
+                      text="Export Character Sheet",
+                      command=self.export_pdf
+                      ).pack(fill="x", pady=(0,5))
 
     def update_modifier(self, stat, value):
         mod = get_modifier(value)
@@ -275,3 +281,24 @@ class CharacterTab:
         self.refresh_character_list()
         char = self.db.get_character(self.current_char_id)
         self.load_character(char)
+
+    def export_pdf(self):
+        if self.current_char_id is None:
+            print("No character selected")
+            return
+        char = self.db.get_character(self.current_char_id)
+        print(f"Exporting: {char['char_name']}")
+        try:
+            export_character_pdf(
+                get_asset("5E_CharacterSheet_Fillable.pdf"),
+                f"{char['char_name']}_character_sheet.pdf",
+                char
+            )
+            print("Export done!")
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+
+
+
