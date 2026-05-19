@@ -40,6 +40,28 @@ python gui/app.py
 - NPC Generator via LLM API
 - 
 
+## Learned Concepts
+### Python
+- Lambda functions with d=die workaround
+- several new modules and imports
+- CustomTkinter basics
+- Commands for event handling
+- Custom Widgets
+- filedialog for "Save as"-window
+- 
+
+### Database (SQLITE)
+- Pragma foreign keys
+- 
+
+### API
+- REST API via requests
+- JSON Parsing 
+- Connection Pooling
+- Local caching
+- 
+
+
 ## Tech stack 
 - Python
 - SQL (SQLite3)
